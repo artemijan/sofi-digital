@@ -1,0 +1,45 @@
+# Secrets / environment
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.python-version
+
+# Django
+db.sqlite3
+db.sqlite3-journal
+db.sqlite3-wal
+db.sqlite3-shm
+/staticfiles/
+/media/
+*.log
+
+# Haystack / Whoosh search index
+/whoosh_index/
+
+# Thumbnails
+/media/CACHE/
+
+# Tooling
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+.tox/
+
+# Editors / OS
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/shelf/
+.vscode/
+.DS_Store
