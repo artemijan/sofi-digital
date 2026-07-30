@@ -1,0 +1,27 @@
+{% load i18n %}
+
+{# Project override of Oscar's basket addition message.                      #}
+{# Identical wording — the blocktrans blocks are copied verbatim, whitespace #}
+{# included, so the msgids still match Oscar's compiled catalogues and the   #}
+{# message keeps translating. The only addition is the wrapper carrying      #}
+{# data-toast-duration, which tells the top-bar toast script how long to     #}
+{# show this balloon (3s). Keeping the timing in the message means no view   #}
+{# override or app fork is needed to give each message its own duration.     #}
+
+{% block message_content %}
+<span class="sofi-toast__body" data-toast-duration="3000">
+{% if quantity == 1 %}
+    {% blocktrans with title=product.get_title %}
+    <strong>{{ title }}</strong> has been added to your basket.
+    {% endblocktrans %}
+    {% else %}
+
+    {% blocktrans with title=product.get_title quantity=quantity %}
+    <strong>{{ quantity }}</strong> copies of <strong>{{ title }}</strong>
+    have been added to your basket.
+    {% endblocktrans %}
+{% endif %}
+</span>
+{% endblock message_content %}
+
+{% block analytics_scripts %}{% endblock analytics_scripts %}

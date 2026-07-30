@@ -1,0 +1,36 @@
+{% load i18n %}
+{% load currency_filters %}
+
+{# Project override of Oscar's basket total message. Wording and blocktrans  #}
+{# whitespace are copied verbatim so the msgids still match Oscar's compiled #}
+{# catalogues. The wrapper adds data-toast-duration (5s) for the top-bar     #}
+{# toast script — see basket/messages/addition.html for the rationale.       #}
+
+{% block message_content %}
+<span class="sofi-toast__body" data-toast-duration="5000">
+{% if basket.is_empty %}
+    {% trans "Your basket is now empty" %}
+{% else %}
+    {% if basket.is_tax_known %}
+        {% blocktrans with total=basket.total_incl_tax|currency:basket.currency %}
+        Your basket total is now <strong>{{ total }}</strong>
+        {% endblocktrans %}
+    {% else %}
+        {% blocktrans with total=basket.total_excl_tax|currency:basket.currency %}
+        Your basket total is now <strong>{{ total }}</strong>
+        {% endblocktrans %}
+    {% endif %}
+{% endif %}
+</span>
+{% endblock message_content %}
+
+{% if include_buttons %}
+    {% block buttons %}
+        <span class="sofi-toast__actions">
+            <a href="{% url 'basket:summary' %}" class="sofi-toast__action">{% trans "View basket" %}</a>
+            <a href="{% url 'checkout:index' %}" class="sofi-toast__action sofi-toast__action--primary">{% trans "Checkout now" %}</a>
+        </span>
+    {% endblock buttons %}
+{% endif %}
+
+{% block analytics_scripts %}{% endblock analytics_scripts %}

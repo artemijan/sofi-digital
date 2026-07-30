@@ -1,0 +1,1483 @@
+/*
+ * Sofi storefront theme.
+ *
+ * Loaded after Oscar's own styles.css (Bootstrap 4), so plain-specificity
+ * rules here win. Colours come from custom properties on :root, so the
+ * palette can be retuned in one place.
+ *
+ * The look follows innerbalance.com: a floating rounded top bar, periwinkle
+ * actions on near-white surfaces, generous corner radii.
+ */
+
+/* ------------------------------------------------------------------ *
+ * Tokens
+ *
+ * Palette sampled from the reference site: periwinkle #5472cc for actions,
+ * deep indigo #183690 for headings, white surfaces on a near-white page.
+ * ------------------------------------------------------------------ */
+
+:root {
+    --sofi-bg: #f5f7fc;
+    --sofi-surface: #ffffff;
+    --sofi-surface-alt: #eef2fb;
+    --sofi-border: #e2e8f5;
+    --sofi-text: #1e2b4d;
+    --sofi-heading: #183690;
+    --sofi-text-muted: #6d7997;
+
+    --sofi-accent: #5472cc;
+    --sofi-accent-strong: #3f5cb8;
+    --sofi-accent-contrast: #ffffff;
+    --sofi-accent-soft: rgba(84, 114, 204, 0.10);
+
+    --sofi-warm: #e0a23f;
+    --sofi-danger: #c9584f;
+
+    --sofi-shadow: 0 1px 2px rgba(24, 54, 144, 0.04), 0 8px 24px rgba(24, 54, 144, 0.06);
+    --sofi-shadow-lift: 0 6px 14px rgba(24, 54, 144, 0.08), 0 20px 44px rgba(24, 54, 144, 0.12);
+
+    --sofi-radius: 16px;
+    --sofi-radius-sm: 10px;
+    --sofi-radius-pill: 999px;
+
+    color-scheme: light;
+}
+
+/* ------------------------------------------------------------------ *
+ * Base
+ * ------------------------------------------------------------------ */
+
+body {
+    background-color: var(--sofi-bg);
+    color: var(--sofi-text);
+    -webkit-font-smoothing: antialiased;
+}
+
+/*
+ * Oscar paints the content sheet solid white (`.page .page_inner`) with a
+ * shadow. Dropping it lets the cards float directly on the page background,
+ * which is how the reference site handles its listings.
+ */
+.page .page_inner {
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+}
+
+.page_inner {
+    padding: 1.75rem 0;
+}
+
+/*
+ * Bootstrap caps `.container` at 1140px. The product grid is meant to use the
+ * full page width, so the page container is unbounded with fluid gutters that
+ * match the top bar's.
+ */
+.container.page {
+    max-width: none;
+    width: 100%;
+    padding-inline: clamp(1rem, 3vw, 2.5rem);
+}
+
+a {
+    color: var(--sofi-accent-strong);
+}
+
+a:hover,
+a:focus {
+    color: var(--sofi-accent);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--sofi-heading);
+    letter-spacing: -0.02em;
+}
+
+hr {
+    border-top-color: var(--sofi-border);
+}
+
+/* Keyboard focus stays clearly visible. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+.btn:focus-visible {
+    outline: 2px solid var(--sofi-accent);
+    outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------------ *
+ * Floating pill top bar
+ *
+ * A single rounded bar over a blurred backdrop: brand left, nav centred,
+ * search + account + basket total right. Replaces Oscar's three stacked
+ * bars (accounts / brand+basket / browse+search).
+ * ------------------------------------------------------------------ */
+
+.sofi-topbar-wrap {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    /* Spacing only. Any background here would read as a rectangle behind the
+       rounded bar — the blur belongs on the bar itself. */
+    padding: 0.6rem clamp(0.75rem, 3vw, 2.5rem);
+    background: none;
+    pointer-events: none;
+}
+
+.sofi-topbar {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    /* Positioning context for the centred nav and the toast balloons. */
+    position: relative;
+    pointer-events: auto;
+    max-width: 1360px;
+    min-height: 52px;
+    margin: 0 auto;
+    padding: 0.3rem 0.4rem 0.3rem 1.25rem;
+    /* Frosted: content scrolling underneath shows through, blurred. */
+    background-color: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    border: 1px solid var(--sofi-border);
+    border-radius: var(--sofi-radius-pill);
+    box-shadow: var(--sofi-shadow);
+}
+
+.sofi-topbar__brand {
+    flex: 0 0 auto;
+    min-width: 0;
+    font-size: 1.2rem;
+    font-weight: 680;
+    letter-spacing: -0.02em;
+    color: var(--sofi-heading);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.sofi-topbar__brand:hover {
+    color: var(--sofi-accent);
+    text-decoration: none;
+}
+
+.sofi-topbar__collapse {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.sofi-topbar__nav {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+    flex: 0 0 auto;
+}
+
+/*
+ * Centre the nav on the *bar*, not on the space left over between brand and
+ * tools — the right-hand group (search + language + account + basket) is far
+ * wider than the wordmark, so auto margins would leave the nav visibly left
+ * of centre. Taking it out of flow and pinning it to 50% is exact.
+ */
+@media (min-width: 992px) {
+    .sofi-topbar {
+        position: relative;
+    }
+
+    .sofi-topbar__nav {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    /* With the nav out of flow, push the remaining controls to the right. */
+    .sofi-topbar__collapse > .sofi-search {
+        margin-left: auto;
+    }
+}
+
+.sofi-topbar__link,
+.sofi-menu__toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: var(--sofi-radius-pill);
+    color: var(--sofi-text);
+    font-weight: 550;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.sofi-topbar__link:hover,
+.sofi-menu:hover .sofi-menu__toggle,
+.sofi-menu:focus-within .sofi-menu__toggle {
+    background-color: var(--sofi-accent-soft);
+    color: var(--sofi-accent-strong);
+    text-decoration: none;
+}
+
+.sofi-topbar__link--quiet {
+    color: var(--sofi-text-muted);
+    font-weight: 500;
+}
+
+/* ---- Hover menu ---------------------------------------------------- */
+
+.sofi-menu {
+    position: relative;
+}
+
+.sofi-menu__chevron {
+    transition: transform 0.25s ease;
+}
+
+.sofi-menu:hover .sofi-menu__chevron,
+.sofi-menu:focus-within .sofi-menu__chevron {
+    transform: rotate(180deg);
+}
+
+.sofi-menu__panel {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    /* Padding forms a bridge between toggle and panel so the menu does not
+       close while the pointer crosses the gap. */
+    padding-top: 0.6rem;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    /* Delay `visibility` until the fade-out finishes, so the panel animates
+       out instead of vanishing, and is not clickable while hidden. */
+    transition: opacity 0.22s ease, transform 0.22s ease,
+        visibility 0s linear 0.22s;
+    z-index: 1200;
+}
+
+.sofi-menu:hover .sofi-menu__panel,
+.sofi-menu:focus-within .sofi-menu__panel {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    transition: opacity 0.22s ease, transform 0.22s ease, visibility 0s;
+}
+
+/* The mega panel is wider than its toggle, so it is centred on it. */
+.sofi-menu--mega .sofi-menu__panel {
+    left: 50%;
+    transform: translate(-50%, -8px);
+}
+
+.sofi-menu--mega:hover .sofi-menu__panel,
+.sofi-menu--mega:focus-within .sofi-menu__panel {
+    transform: translate(-50%, 0);
+}
+
+/* ---- Shop mega-menu ------------------------------------------------ */
+
+.sofi-mega {
+    display: grid;
+    grid-template-columns: minmax(170px, 0.6fr) minmax(430px, 1fr);
+    gap: 1.5rem;
+    min-width: 700px;
+    padding: 1.35rem 1.5rem;
+    background-color: var(--sofi-surface);
+    border: 1px solid var(--sofi-border);
+    border-radius: var(--sofi-radius);
+    box-shadow: var(--sofi-shadow-lift);
+}
+
+.sofi-mega__col {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.sofi-mega__col--products {
+    padding-left: 1.75rem;
+    border-left: 1px solid var(--sofi-border);
+}
+
+.sofi-mega__heading {
+    margin-bottom: 0.6rem;
+    color: var(--sofi-text-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+}
+
+.sofi-mega__link {
+    display: block;
+    padding: 0.4rem 0.6rem;
+    border-radius: var(--sofi-radius-sm);
+    color: var(--sofi-text);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 0.15s ease, color 0.15s ease,
+        padding-left 0.15s ease;
+}
+
+.sofi-mega__link:hover,
+.sofi-mega__link:focus {
+    background-color: var(--sofi-accent-soft);
+    color: var(--sofi-accent-strong);
+    text-decoration: none;
+    padding-left: 0.85rem;
+}
+
+/* Top-level categories act as group headings, children are indented. */
+.sofi-mega__link--l0 {
+    font-weight: 620;
+}
+
+.sofi-mega__link--l1 {
+    padding-left: 1.3rem;
+    color: var(--sofi-text-muted);
+    font-size: 0.94rem;
+}
+
+.sofi-mega__link--l1:hover,
+.sofi-mega__link--l1:focus {
+    padding-left: 1.55rem;
+}
+
+.sofi-mega__all {
+    margin-top: auto;
+    padding: 0.6rem;
+    color: var(--sofi-accent-strong);
+    font-weight: 620;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.sofi-mega__all:hover {
+    color: var(--sofi-accent);
+    text-decoration: none;
+}
+
+.sofi-mega__products {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.35rem;
+}
+
+.sofi-mega__product {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    min-width: 0;
+    padding: 0.45rem;
+    border-radius: var(--sofi-radius-sm);
+    color: var(--sofi-text);
+    text-decoration: none;
+    transition: background-color 0.18s ease;
+}
+
+.sofi-mega__product:hover {
+    background-color: var(--sofi-accent-soft);
+    color: var(--sofi-accent-strong);
+    text-decoration: none;
+}
+
+.sofi-mega__thumb {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    overflow: hidden;
+    background-color: transparent;
+    border-radius: 12px;
+}
+
+.sofi-mega__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.sofi-mega__product:hover .sofi-mega__thumb img {
+    transform: scale(1.08);
+}
+
+.sofi-mega__product-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.sofi-mega__product-title {
+    font-size: 0.9rem;
+    font-weight: 550;
+    line-height: 1.3;
+    /* Two lines maximum, so a long name cannot stretch the row. */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.sofi-mega__product-meta {
+    color: var(--sofi-warm);
+    font-size: 0.78rem;
+}
+
+.sofi-mega__empty {
+    margin: 0;
+    color: var(--sofi-text-muted);
+}
+
+/* ---- Search --------------------------------------------------------- */
+
+.sofi-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 0 1 auto;
+    width: 200px;
+    min-width: 0;
+}
+
+.sofi-search__icon {
+    position: absolute;
+    left: 0.8rem;
+    color: var(--sofi-text-muted);
+    pointer-events: none;
+}
+
+.sofi-search__input {
+    width: 100%;
+    height: 34px;
+    padding: 0 0.9rem 0 2.3rem;
+    background-color: var(--sofi-surface-alt);
+    border: 1px solid transparent;
+    border-radius: var(--sofi-radius-pill);
+    color: var(--sofi-text);
+    transition: border-color 0.18s ease, box-shadow 0.18s ease,
+        background-color 0.18s ease;
+}
+
+.sofi-search__input::placeholder {
+    color: var(--sofi-text-muted);
+}
+
+.sofi-search__input:focus {
+    outline: none;
+    background-color: var(--sofi-surface);
+    border-color: var(--sofi-accent);
+    box-shadow: 0 0 0 3px var(--sofi-accent-soft);
+}
+
+/* ---- Tools: language, account, basket -------------------------------- */
+
+.sofi-tools {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 0 0 auto;
+}
+
+.sofi-lang {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.sofi-lang__select {
+    height: 32px;
+    padding: 0 0.5rem;
+    background-color: transparent;
+    color: var(--sofi-text-muted);
+    border: 1px solid var(--sofi-border);
+    border-radius: var(--sofi-radius-pill);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: border-color 0.18s ease, color 0.18s ease;
+}
+
+.sofi-lang__select:hover {
+    border-color: var(--sofi-accent);
+    color: var(--sofi-accent-strong);
+}
+
+.sofi-lang__go {
+    height: 32px;
+    padding: 0 0.7rem;
+    background-color: transparent;
+    color: var(--sofi-text-muted);
+    border: 1px solid var(--sofi-border);
+    border-radius: var(--sofi-radius-pill);
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+/* Hidden once JS wires the select to auto-submit (progressive enhancement). */
+.sofi-lang--auto .sofi-lang__go {
+    display: none;
+}
+
+.sofi-badge {
+    display: inline-block;
+    min-width: 18px;
+    padding: 0 5px;
+    margin-left: 0.3rem;
+    background-color: var(--sofi-warm);
+    color: #ffffff;
+    border-radius: var(--sofi-radius-pill);
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 18px;
+    text-align: center;
+}
+
+/* Basket total, in the slot the reference site gives its "Get started" CTA. */
+.sofi-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 38px;
+    padding: 0 1rem;
+    background-color: var(--sofi-accent);
+    color: var(--sofi-accent-contrast);
+    border-radius: var(--sofi-radius-pill);
+    font-weight: 620;
+    white-space: nowrap;
+    text-decoration: none;
+    transition: background-color 0.18s ease, transform 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+.sofi-cta:hover,
+.sofi-cta:focus {
+    background-color: var(--sofi-accent-strong);
+    color: var(--sofi-accent-contrast);
+    text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: var(--sofi-shadow);
+}
+
+.sofi-cta__count {
+    display: inline-block;
+    min-width: 20px;
+    padding: 0 6px;
+    background-color: rgba(255, 255, 255, 0.25);
+    border-radius: var(--sofi-radius-pill);
+    font-size: 0.75rem;
+    line-height: 20px;
+    text-align: center;
+}
+
+/* ---- Toast balloons ------------------------------------------------- */
+
+/*
+ * Flash messages that carry a data-toast-duration marker hang beneath the
+ * basket total. The container is click-through so it never blocks the page;
+ * only the balloons themselves take pointer events.
+ */
+.sofi-toasts {
+    position: absolute;
+    top: 100%;
+    right: 0.6rem;
+    z-index: 1300;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: min(340px, calc(100vw - 2rem));
+    margin-top: 0.7rem;
+    pointer-events: none;
+}
+
+.sofi-toast {
+    position: relative;
+    pointer-events: auto;
+    padding: 0.8rem 2rem 0.8rem 1rem;
+    background-color: var(--sofi-surface);
+    border: 1px solid var(--sofi-border);
+    border-left: 3px solid var(--sofi-accent);
+    border-radius: var(--sofi-radius);
+    box-shadow: var(--sofi-shadow-lift);
+    color: var(--sofi-text);
+    font-size: 0.9rem;
+    line-height: 1.4;
+    animation: sofi-toast-in 0.22s ease both;
+}
+
+.sofi-toast--success {
+    border-left-color: var(--sofi-accent);
+}
+
+.sofi-toast--danger {
+    border-left-color: var(--sofi-danger);
+}
+
+.sofi-toast--info {
+    border-left-color: var(--sofi-warm);
+}
+
+/* Caret pointing back up at the basket button. */
+.sofi-toast:first-child::before {
+    content: "";
+    position: absolute;
+    top: -6px;
+    right: 22px;
+    width: 10px;
+    height: 10px;
+    background-color: var(--sofi-surface);
+    border-left: 1px solid var(--sofi-border);
+    border-top: 1px solid var(--sofi-border);
+    transform: rotate(45deg);
+}
+
+.sofi-toast strong {
+    color: var(--sofi-heading);
+}
+
+.sofi-toast__close {
+    position: absolute;
+    top: 0.35rem;
+    right: 0.4rem;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: var(--sofi-radius-pill);
+    color: var(--sofi-text-muted);
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.sofi-toast__close:hover {
+    background-color: var(--sofi-accent-soft);
+    color: var(--sofi-accent-strong);
+}
+
+.sofi-toast__actions {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.6rem;
+}
+
+.sofi-toast__action {
+    padding: 0.3rem 0.7rem;
+    border: 1px solid var(--sofi-border);
+    border-radius: var(--sofi-radius-pill);
+    color: var(--sofi-text);
+    font-size: 0.8rem;
+    font-weight: 550;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.sofi-toast__action:hover {
+    border-color: var(--sofi-accent);
+    color: var(--sofi-accent-strong);
+    text-decoration: none;
+}
+
+.sofi-toast__action--primary {
+    background-color: var(--sofi-accent);
+    border-color: var(--sofi-accent);
+    color: var(--sofi-accent-contrast);
+}
+
+.sofi-toast__action--primary:hover {
+    background-color: var(--sofi-accent-strong);
+    border-color: var(--sofi-accent-strong);
+    color: var(--sofi-accent-contrast);
+}
+
+.sofi-toast.is-leaving {
+    opacity: 0;
+    transform: translateY(-6px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+@keyframes sofi-toast-in {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 991.98px) {
+    .sofi-toasts {
+        right: 0.5rem;
+        left: 0.5rem;
+        width: auto;
+    }
+}
+/* ---- Burger (mobile) ------------------------------------------------- */
+
+.sofi-topbar__burger {
+    display: none;
+    flex: 0 0 auto;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    width: 40px;
+    height: 34px;
+    margin-left: auto;
+    padding: 0 9px;
+    background: transparent;
+    border: 1px solid var(--sofi-border);
+    border-radius: var(--sofi-radius-sm);
+    cursor: pointer;
+}
+
+.sofi-topbar__burger span {
+    display: block;
+    height: 2px;
+    background-color: var(--sofi-text);
+    border-radius: 2px;
+    transition: transform 0.22s ease, opacity 0.22s ease;
+}
+
+.sofi-topbar__burger[aria-expanded="true"] span:nth-child(1) {
+    transform: translateY(6px) rotate(45deg);
+}
+
+.sofi-topbar__burger[aria-expanded="true"] span:nth-child(2) {
+    opacity: 0;
+}
+
+.sofi-topbar__burger[aria-expanded="true"] span:nth-child(3) {
+    transform: translateY(-6px) rotate(-45deg);
+}
+
+@media (max-width: 991.98px) {
+    .sofi-topbar {
+        flex-wrap: wrap;
+        border-radius: 22px;
+        padding: 0.4rem 0.55rem 0.4rem 1rem;
+    }
+
+    .sofi-topbar__burger {
+        display: flex;
+        order: 3;
+        margin-left: 0.5rem;
+    }
+
+    /*
+     * Keep brand · basket · burger together on the first line and drop the
+     * collapsible nav onto its own line below. Without the explicit order the
+     * collapse (flex-basis 100%) would wrap first and push the basket and
+     * burger onto a third line.
+     */
+    .sofi-topbar__brand {
+        order: 1;
+    }
+
+    .sofi-topbar .sofi-cta {
+        order: 2;
+        margin-left: auto;
+    }
+
+    .sofi-topbar__collapse {
+        order: 4;
+    }
+
+    .sofi-topbar__collapse {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+        width: 100%;
+        /* Animated open/close driven by the burger's aria-expanded state. */
+        max-height: 0;
+        overflow: hidden;
+        opacity: 0;
+        transition: max-height 0.28s ease, opacity 0.2s ease,
+            padding 0.28s ease;
+    }
+
+    .sofi-topbar__collapse.is-open {
+        max-height: 720px;
+        opacity: 1;
+        padding-block: 0.75rem;
+    }
+
+    .sofi-topbar__nav {
+        flex-direction: column;
+        align-items: stretch;
+        margin-inline: 0;
+    }
+
+    .sofi-search {
+        width: 100%;
+        order: -1;
+    }
+
+    .sofi-tools {
+        flex-wrap: wrap;
+    }
+
+    /* Hover panels do not make sense on touch: show them inline instead. */
+    .sofi-menu__panel,
+    .sofi-menu--mega .sofi-menu__panel {
+        position: static;
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        padding-top: 0.35rem;
+    }
+
+    .sofi-mega {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 1rem;
+        min-width: 0;
+        padding: 0.75rem;
+        border: none;
+        box-shadow: none;
+        background-color: var(--sofi-surface-alt);
+    }
+
+    .sofi-mega__col--products {
+        padding-left: 0;
+        border-left: none;
+        border-top: 1px solid var(--sofi-border);
+        padding-top: 0.85rem;
+    }
+
+    .sofi-menu__chevron {
+        display: none;
+    }
+}
+
+/* ------------------------------------------------------------------ *
+ * Bootstrap dropdowns (still used on product/dashboard pages)
+ * ------------------------------------------------------------------ */
+
+.dropdown-menu {
+    background-color: var(--sofi-surface);
+    border: 1px solid var(--sofi-border);
+    border-radius: var(--sofi-radius-sm);
+    box-shadow: var(--sofi-shadow-lift);
+}
+
+.dropdown-item {
+    color: var(--sofi-text);
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+    background-color: var(--sofi-accent-soft);
+    color: var(--sofi-accent-strong);
+}
+
+.dropdown-divider {
+    border-top-color: var(--sofi-border);
+}
+
+/* ------------------------------------------------------------------ *
+ * Buttons
+ * ------------------------------------------------------------------ */
+
+.btn {
+    border-radius: var(--sofi-radius-sm);
+    font-weight: 550;
+    transition: background-color 0.15s ease, border-color 0.15s ease,
+        color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn:active {
+    transform: translateY(1px);
+}
+
+.btn-primary,
+.btn-success,
+.btn-secondary {
+    background-color: var(--sofi-accent);
+    border-color: var(--sofi-accent);
+    color: var(--sofi-accent-contrast);
+}
+
+.btn-primary:hover,
+.btn-success:hover,
+.btn-secondary:hover,
+.btn-primary:focus,
+.btn-success:focus,
+.btn-secondary:focus {
+    background-color: var(--sofi-accent-strong);
+    border-color: var(--sofi-accent-strong);
+    color: var(--sofi-accent-contrast);
+    box-shadow: var(--sofi-shadow);
+}
+
+.btn-outline-secondary,
+.btn-outline-primary {
+    color: var(--sofi-text-muted);
+    border-color: var(--sofi-border);
+    background-color: transparent;
+}
+
+.btn-outline-secondary:hover,
+.btn-outline-primary:hover {
+    background-color: var(--sofi-accent-soft);
+    border-color: var(--sofi-accent);
+    color: var(--sofi-accent-strong);
+}
+
+.btn-danger {
+    background-color: var(--sofi-danger);
+    border-color: var(--sofi-danger);
+}
+
+/* ------------------------------------------------------------------ *
+ * Forms
+ * ------------------------------------------------------------------ */
+
+.form-control,
+.custom-select,
+select.form-control {
+    background-color: var(--sofi-surface);
+    border: 1px solid var(--sofi-border);
+    border-radius: var(--sofi-radius-sm);
+    color: var(--sofi-text);
+}
+
+.form-control:focus {
+    background-color: var(--sofi-surface);
+    border-color: var(--sofi-accent);
+    color: var(--sofi-text);
+    box-shadow: 0 0 0 3px var(--sofi-accent-soft);
+}
+
+.form-control::placeholder {
+    color: var(--sofi-text-muted);
+    opacity: 0.8;
+}
+
+label,
+.form-group label {
+    color: var(--sofi-text);
+    font-weight: 550;
+}
+
+.input-group-text {
+    background-color: var(--sofi-surface-alt);
+    border-color: var(--sofi-border);
+    color: var(--sofi-text-muted);
+}
+
+/* ------------------------------------------------------------------ *
+ * Cards, panels, sidebar
+ * ------------------------------------------------------------------ */
+
+.card,
+.card.bg-light,
+.side_categories,
+.side_categories.bg-light,
+.well {
+    background-color: var(--sofi-surface) !important;
+    border: 1px solid var(--sofi-border);
+    border-radius: var(--sofi-radius);
+    box-shadow: var(--sofi-shadow);
+    color: var(--sofi-text);
+}
+
+.card-header {
+    background-color: var(--sofi-surface-alt);
+    border-bottom-color: var(--sofi-border);
+    color: var(--sofi-text);
+}
+
+.side_categories .nav-list a {
+    display: block;
+    padding: 0.35rem 0.6rem;
+    border-radius: var(--sofi-radius-sm);
+    color: var(--sofi-text-muted);
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.side_categories .nav-list a:hover {
+    background-color: var(--sofi-accent-soft);
+    color: var(--sofi-accent-strong);
+    text-decoration: none;
+}
+
+.side_categories .nav-list strong {
+    color: var(--sofi-accent-strong);
+}
+
+/* ------------------------------------------------------------------ *
+ * Page header & breadcrumbs
+ * ------------------------------------------------------------------ */
+
+.page-header {
+    border-bottom: 1px solid var(--sofi-border);
+    padding-bottom: 0.6rem;
+    margin-bottom: 1.5rem;
+}
+
+.page-header h1 {
+    font-size: 1.75rem;
+    margin-bottom: 0;
+}
+
+.breadcrumb {
+    background-color: transparent;
+    padding-left: 0;
+    font-size: 0.875rem;
+}
+
+.breadcrumb-item,
+.breadcrumb-item.active {
+    color: var(--sofi-text-muted);
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    color: var(--sofi-border);
+}
+
+/* ------------------------------------------------------------------ *
+ * Product cards
+ * ------------------------------------------------------------------ */
+
+/*
+ * Oscar pins pods to `height: 380px` with `overflow: hidden` and absolutely
+ * positions `.product_price` at the bottom, so a title that wraps to two
+ * lines collides with the price and stock line. Switch to a flex column and
+ * let the content set the height instead.
+ */
+.product_pod {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    overflow: visible;
+    position: relative;
+    padding: 1rem;
+    background-color: var(--sofi-surface);
+    border: 1px solid var(--sofi-border);
+    border-radius: var(--sofi-radius);
+    box-shadow: var(--sofi-shadow);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.product_pod:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--sofi-shadow-lift);
+    border-color: var(--sofi-accent);
+}
+
+/* Transparent: product shots carry their own backdrop, and a tinted tile
+   behind them just draws a visible seam around the edge of the image. */
+.product_pod .image_container {
+    background-color: transparent;
+    border-radius: var(--sofi-radius-sm);
+    padding: 0.25rem;
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 190px;
+    overflow: hidden;
+}
+
+.product_pod .image_container img,
+.image_container img.img-thumbnail,
+.img-thumbnail {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    border-radius: var(--sofi-radius-sm);
+    transition: transform 0.25s ease;
+}
+
+.product_pod:hover .image_container img {
+    transform: scale(1.04);
+}
+
+.product_pod h3 {
+    font-size: 1rem;
+    line-height: 1.35;
+    margin-bottom: 0.35rem;
+}
+
+.product_pod h3 a {
+    color: var(--sofi-text);
+    text-decoration: none;
+}
+
+.product_pod h3 a:hover {
+    color: var(--sofi-accent-strong);
+}
+
+/* Push price + button to the bottom so cards line up across a row. */
+.product_pod .product_price {
+    position: static;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+    width: 100%;
+    margin-top: auto;
+    padding-top: 0.65rem;
+}
+
+.product_pod .product_price .price_color,
+.product_pod .product_price .availability {
+    min-height: 0;
+    margin-bottom: 0;
+    white-space: normal;
+}
+
+.product_pod .product_price form {
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+.product_pod .product_price .btn {
+    width: 100%;
+}
+
+.product_price .price_color,
+.basket-items .price_color,
+.price_color {
+    color: var(--sofi-accent-strong);
+    font-size: 1.15rem;
+    font-weight: 650;
+}
+
+.availability.instock,
+.instock {
+    color: var(--sofi-accent-strong);
+    font-size: 0.85rem;
+}
+
+.availability.outofstock,
+.outofstock {
+    color: var(--sofi-danger);
+    font-size: 0.85rem;
+}
+
+/*
+ * Oscar greys out the whole row and then colours only the earned stars via
+ * .One … .Five. Recolouring `.star-rating i` wholesale would show five filled
+ * stars on every unrated product, so mirror Oscar's selectors exactly and
+ * only restyle the filled ones.
+ */
+.star-rating {
+    color: var(--sofi-border);
+    font-size: 0.85rem;
+}
+
+.star-rating.One i:first-child,
+.star-rating.Two i:first-child,
+.star-rating.Two i:first-child + i,
+.star-rating.Three i:first-child,
+.star-rating.Three i:first-child + i,
+.star-rating.Three i:first-child + i + i,
+.star-rating.Four i:first-child,
+.star-rating.Four i:first-child + i,
+.star-rating.Four i:first-child + i + i,
+.star-rating.Four i:first-child + i + i + i,
+.star-rating.Five i {
+    color: var(--sofi-warm);
+}
+
+/* Even heights across a product row */
+.row > [class*="col-"] > .product_pod {
+    height: 100%;
+}
+
+ol.row,
+ul.row {
+    align-items: stretch;
+}
+
+/* ------------------------------------------------------------------ *
+ * Product detail
+ * ------------------------------------------------------------------ */
+
+#product_gallery,
+.product_main {
+    background-color: var(--sofi-surface);
+    border: 1px solid var(--sofi-border);
+    border-radius: var(--sofi-radius);
+    padding: 1.25rem;
+    box-shadow: var(--sofi-shadow);
+}
+
+.product_main h1 {
+    font-size: 1.6rem;
+}
+
+.nav-tabs {
+    border-bottom-color: var(--sofi-border);
+}
+
+.nav-tabs .nav-link {
+    color: var(--sofi-text-muted);
+    border-radius: var(--sofi-radius-sm) var(--sofi-radius-sm) 0 0;
+}
+
+.nav-tabs .nav-link.active {
+    background-color: var(--sofi-surface);
+    border-color: var(--sofi-border) var(--sofi-border) var(--sofi-surface);
+    color: var(--sofi-text);
+}
+
+/* ------------------------------------------------------------------ *
+ * Tables (basket, order history)
+ * ------------------------------------------------------------------ */
+
+.table {
+    color: var(--sofi-text);
+    background-color: var(--sofi-surface);
+    border-radius: var(--sofi-radius);
+    overflow: hidden;
+}
+
+.table th,
+.table td {
+    border-top-color: var(--sofi-border);
+    vertical-align: middle;
+}
+
+.table thead th {
+    background-color: var(--sofi-surface-alt);
+    border-bottom-color: var(--sofi-border);
+    color: var(--sofi-text-muted);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: var(--sofi-accent-soft);
+}
+
+/* ------------------------------------------------------------------ *
+ * Alerts, badges, pagination
+ * ------------------------------------------------------------------ */
+
+.alert {
+    border-radius: var(--sofi-radius);
+    border: 1px solid var(--sofi-border);
+    background-color: var(--sofi-surface);
+    color: var(--sofi-text);
+}
+
+.alert-success {
+    border-left: 4px solid var(--sofi-accent);
+}
+
+.alert-danger,
+.alert-error {
+    border-left: 4px solid var(--sofi-danger);
+}
+
+.alert-info,
+.alert-warning {
+    border-left: 4px solid var(--sofi-warm);
+}
+
+.badge-warning,
+.badge-primary,
+.badge-secondary {
+    background-color: var(--sofi-accent);
+    color: var(--sofi-accent-contrast);
+}
+
+.pagination .page-link {
+    background-color: var(--sofi-surface);
+    border-color: var(--sofi-border);
+    color: var(--sofi-text-muted);
+}
+
+.pagination .page-link:hover {
+    background-color: var(--sofi-accent-soft);
+    color: var(--sofi-accent-strong);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--sofi-accent);
+    border-color: var(--sofi-accent);
+    color: var(--sofi-accent-contrast);
+}
+
+/* ------------------------------------------------------------------ *
+ * Footer
+ * ------------------------------------------------------------------ */
+
+footer.container {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    padding-bottom: 2.5rem;
+    border-top: 1px solid var(--sofi-border);
+    color: var(--sofi-text-muted);
+    font-size: 0.875rem;
+}
+
+/* ------------------------------------------------------------------ *
+ * Motion preferences
+ * ------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
+
+    .product_pod:hover {
+        transform: none;
+    }
+}
+
+/* ------------------------------------------------------------------ *
+ * Results toolbar
+ * ------------------------------------------------------------------ */
+
+/* Breadcrumb and sort control share one row. */
+.sofi-crumbrow {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.sofi-crumbrow .breadcrumb {
+    margin-bottom: 0;
+}
+
+.sofi-crumbrow__admin {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-left: auto;
+    color: var(--sofi-text-muted);
+    font-size: 0.85rem;
+    text-decoration: none;
+}
+
+.sofi-crumbrow__admin:hover {
+    color: var(--sofi-accent-strong);
+    text-decoration: none;
+}
+
+/* Sits right; the admin shortcut (when present) already took `margin-left`. */
+.sofi-crumbrow .sofi-sortform {
+    margin-left: auto;
+}
+
+.sofi-crumbrow__admin ~ .sofi-sortform {
+    margin-left: 0;
+}
+.sofi-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.sofi-toolbar__count {
+    color: var(--sofi-text-muted);
+}
+
+.sofi-toolbar__count strong {
+    color: var(--sofi-text);
+}
+
+.sofi-toolbar__sort,
+.sofi-sortform {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.sofi-toolbar__sort .form-group,
+.sofi-sortform .form-group {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0;
+    min-width: 0;
+}
+
+/*
+ * Oscar's form_field.html (style='horizontal') emits `col-sm-4` / `col-sm-7`
+ * without a wrapping `.row`. Inside a content-sized flex container those
+ * percentage widths resolve against a box that is itself sized by its
+ * content, which pushes the toolbar — and the whole page — wider than the
+ * viewport. Neutralise the stray grid classes here.
+ */
+.sofi-toolbar__sort [class*="col-"],
+.sofi-sortform [class*="col-"] {
+    flex: 0 1 auto;
+    width: auto;
+    max-width: 100%;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.sofi-toolbar__sort select.form-control,
+.sofi-sortform select.form-control {
+    width: auto;
+    max-width: 100%;
+}
+
+.sofi-toolbar__sort label,
+.sofi-sortform label {
+    margin-bottom: 0;
+    color: var(--sofi-text-muted);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------ *
+ * Full-width product grid
+ * ------------------------------------------------------------------ */
+
+.sofi-grid {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    margin-bottom: 0;
+}
+
+.sofi-grid > li {
+    display: flex;
+    margin-bottom: 1.5rem;
+}
+
+.sofi-grid > li > .product_pod {
+    width: 100%;
+    margin: 0;
+}
+
+/* Very narrow screens: keep brand + basket + burger on one line. */
+@media (max-width: 400px) {
+    .sofi-topbar {
+        padding-inline: 0.85rem 0.6rem;
+    }
+
+    .sofi-cta {
+        padding: 0 0.75rem;
+        gap: 0.35rem;
+    }
+
+    .sofi-topbar__brand {
+        font-size: 1.15rem;
+    }
+}

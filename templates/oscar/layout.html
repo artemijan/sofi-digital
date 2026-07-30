@@ -1,0 +1,229 @@
+{% extends "oscar/base.html" %}
+{% load static %}
+{% load i18n %}
+{% load currency_filters %}
+{% load category_tags %}
+{% load image_tags %}
+
+{# Project override of Oscar's layout.html.                                  #}
+{# Oscar ships three stacked bars (accounts / brand+basket / browse+search); #}
+{# this replaces them with a single floating rounded bar: brand on the left, #}
+{# nav centred, account + basket total on the right.                          #}
+{# The `navigation` and `mini_basket` block names are kept so templates that #}
+{# suppress them (e.g. basket/basket.html) still work.                       #}
+
+{% block styles %}
+    <link rel="stylesheet" type="text/css" href="{% static "oscar/css/styles.css" %}" />
+    <link rel="stylesheet" type="text/css" href="{% static "sofi/css/sofi.css" %}" />
+{% endblock %}
+
+{% block layout %}
+    <div class="sofi-topbar-wrap">
+        <header class="sofi-topbar">
+
+            <a class="sofi-topbar__brand" href="{{ homepage_url }}">
+                {% block brand_title %}{{ shop_name }}{% endblock %}
+            </a>
+
+            <div class="sofi-topbar__collapse" id="sofi_nav">
+
+                {% block navigation %}
+                    <nav class="sofi-topbar__nav" aria-label="{% trans 'Main' %}">
+
+                        {# Shop: hover/focus mega-menu with categories + top products. #}
+                        <div class="sofi-menu sofi-menu--mega">
+                            <a class="sofi-menu__toggle"
+                               href="{% url 'catalogue:index' %}"
+                               aria-haspopup="true"
+                               aria-expanded="false">
+                                {% trans "Shop" %}
+                                <svg class="sofi-menu__chevron" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
+                                    <path d="M1 3.2 5 7l4-3.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </a>
+
+                            <div class="sofi-menu__panel">
+                                <div class="sofi-mega">
+
+                                    <div class="sofi-mega__col">
+                                        <p class="sofi-mega__heading">{% trans "Categories" %}</p>
+                                        {% category_tree depth=2 as tree_categories %}
+                                        {% for tree_category in tree_categories %}
+                                            <a class="sofi-mega__link sofi-mega__link--l{{ tree_category.level }}"
+                                               href="{{ tree_category.url }}">{{ tree_category.name }}</a>
+                                        {% endfor %}
+                                        <a class="sofi-mega__all" href="{% url 'catalogue:index' %}">
+                                            {% trans "All products" %} <span aria-hidden="true">&rarr;</span>
+                                        </a>
+                                    </div>
+
+                                    <div class="sofi-mega__col sofi-mega__col--products">
+                                        <p class="sofi-mega__heading">{% trans "Our Products" %}</p>
+                                        <div class="sofi-mega__products">
+                                            {% for product in nav_products %}
+                                                <a class="sofi-mega__product" href="{{ product.get_absolute_url }}">
+                                                    <span class="sofi-mega__thumb">
+                                                        {% with image=product.primary_image %}
+                                                            {% oscar_thumbnail image.original "80x80" upscale=False as thumb %}
+                                                            <img src="{{ thumb.url }}" alt="{{ product.get_title }}" width="56" height="56" loading="lazy" />
+                                                        {% endwith %}
+                                                    </span>
+                                                    <span class="sofi-mega__product-text">
+                                                        <span class="sofi-mega__product-title">{{ product.get_title }}</span>
+                                                        {% if product.rating %}
+                                                            <span class="sofi-mega__product-meta">
+                                                                <i class="fas fa-star" aria-hidden="true"></i>
+                                                                {{ product.rating|floatformat:1 }}
+                                                            </span>
+                                                        {% endif %}
+                                                    </span>
+                                                </a>
+                                            {% empty %}
+                                                <p class="sofi-mega__empty">{% trans "No products yet." %}</p>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <a class="sofi-topbar__link" href="{% url 'offer:list' %}">{% trans "Offers" %}</a>
+                    </nav>
+                {% endblock %}
+
+                {% block topbar_search %}
+                    <form class="sofi-search"
+                          method="GET"
+                          action="{% url 'search:search' %}"
+                          role="search">
+                        <svg class="sofi-search__icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true">
+                            <circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+                            <path d="M11 11l4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                        </svg>
+                        <input class="sofi-search__input"
+                               type="search"
+                               name="q"
+                               id="id_q"
+                               value="{{ request.GET.q|default:'' }}"
+                               placeholder="{% trans 'Search' %}"
+                               aria-label="{% trans 'Search products' %}" />
+                    </form>
+                {% endblock %}
+
+                <div class="sofi-tools">
+
+                    {% if LANGUAGES|length > 1 %}
+                        <form class="sofi-lang" action="{% url 'set_language' %}" method="post">
+                            {% csrf_token %}
+                            <input name="next" type="hidden" value="{{ language_neutral_url_path }}" />
+                            <select class="sofi-lang__select"
+                                    name="language"
+                                    aria-label="{% trans 'Language' %}">
+                                {% get_language_info_list for LANGUAGES as languages %}
+                                {% for language in languages %}
+                                    <option value="{{ language.code }}"{% if language.code == LANGUAGE_CODE %} selected="selected"{% endif %}>
+                                        {{ language.code|upper }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <button class="sofi-lang__go" type="submit">{% trans "Go" %}</button>
+                        </form>
+                    {% endif %}
+
+                    {% block topbar_account %}
+                        <a class="sofi-topbar__link sofi-topbar__link--quiet"
+                           href="{% if user.is_authenticated %}{% url 'customer:summary' %}{% else %}{% url 'customer:login' %}{% endif %}">
+                            {% if user.is_authenticated %}{% trans "Account" %}{% else %}{% trans "Log in" %}{% endif %}
+                            {% if num_unread_notifications > 0 %}
+                                <span class="sofi-badge">{{ num_unread_notifications }}</span>
+                            {% endif %}
+                        </a>
+                    {% endblock %}
+
+                </div>
+            </div>
+
+            {# Outside .sofi-topbar__collapse on purpose: the basket total must #}
+            {# stay visible on mobile rather than hide inside the burger menu.  #}
+            {# CSS `order` puts it after the collapse on desktop and before the #}
+            {# burger on mobile. It sits where the reference site puts its      #}
+            {# "Get started" button.                                            #}
+            {% block mini_basket %}
+                <a class="sofi-cta" href="{% url 'basket:summary' %}">
+                    <i class="fas fa-shopping-bag" aria-hidden="true"></i>
+                    <span class="sofi-cta__total">
+                        {% if request.basket.is_tax_known %}
+                            {{ request.basket.total_incl_tax|currency:request.basket.currency }}
+                        {% else %}
+                            {{ request.basket.total_excl_tax|currency:request.basket.currency }}
+                        {% endif %}
+                    </span>
+                    {% if request.basket.num_items %}
+                        <span class="sofi-cta__count">{{ request.basket.num_items }}</span>
+                    {% endif %}
+                </a>
+            {% endblock %}
+
+            {# Balloons hang from the bar, anchored under the basket total.    #}
+            {# Outside the mini_basket block so they still show on the basket  #}
+            {# page, which suppresses that block.                              #}
+            {% include "oscar/partials/toasts.html" %}
+
+            <button class="sofi-topbar__burger"
+                    type="button"
+                    id="sofi_burger"
+                    aria-controls="sofi_nav"
+                    aria-expanded="false"
+                    aria-label="{% trans 'Toggle navigation' %}">
+                <span></span><span></span><span></span>
+            </button>
+
+        </header>
+    </div>
+
+    {# Main content of page - other layout templates may override this block #}
+    {% block content_wrapper %}
+        <div class="container page">
+            <div class="page_inner">
+                {% block breadcrumbs %}{% endblock %}
+                {% block header %}
+                    <div class="page-header">
+                        <h1>{% block headertext %}{% endblock %}</h1>
+                    </div>
+                {% endblock %}
+                {% include "oscar/partials/alert_messages.html" %}
+                {% block subnavigation %}{% endblock %}
+                <div class="content">
+                    {% block subheader %}{% endblock subheader %}
+
+                    {# Div exists for AJAX updates to entire content section #}
+                    <div id="content_inner">{% block content %}{% endblock %}</div>
+                </div>
+            </div>
+        </div>
+    {% endblock %}
+
+    {% include "oscar/partials/footer.html" %}
+{% endblock %}
+
+{# Local scripts #}
+{% block scripts %}
+    {{ block.super }}
+    <!-- Twitter Bootstrap -->
+    <script src="{% static "oscar/js/bootstrap4/bootstrap.bundle.min.js" %}"></script>
+    <!-- Oscar -->
+    <script src="{% static "oscar/js/oscar/ui.js" %}"></script>
+    <!-- Sofi top bar -->
+    <script src="{% static "sofi/js/ui.js" %}"></script>
+{% endblock %}
+
+{% block extrascripts %}
+    {% include "oscar/partials/extrascripts.html" %}
+    {{ block.super }}
+{% endblock %}
+
+{% block onbodyload %}
+    {{ block.super }}
+    oscar.init();
+{% endblock %}

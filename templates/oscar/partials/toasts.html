@@ -1,0 +1,22 @@
+{% load i18n %}
+{% load string_filters %}
+
+{# Balloons beneath the basket total. Only messages carrying a               #}
+{# data-toast-duration marker land here — see basket/messages/*.html.        #}
+{# Everything else stays in the in-page alert area (partials/alert_messages) #}
+{# so that form errors keep their context instead of floating to the header. #}
+
+<div class="sofi-toasts" id="sofi_toasts" role="status" aria-live="polite">
+    {% for message in messages %}
+        {% if 'data-toast-duration' in message.message %}
+            <div class="sofi-toast sofi-toast--{% if 'error' in message.tags or 'danger' in message.tags %}danger{% elif 'success' in message.tags %}success{% else %}info{% endif %}">
+                <button type="button"
+                        class="sofi-toast__close"
+                        aria-label="{% trans 'Dismiss' %}">&times;</button>
+                <div class="sofi-toast__content">
+                    {% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}
+                </div>
+            </div>
+        {% endif %}
+    {% endfor %}
+</div>

@@ -1,0 +1,95 @@
+{% extends "oscar/layout.html" %}
+
+{% load currency_filters %}
+{% load product_tags %}
+{% load i18n %}
+
+{# Project override: full-width results grid, matching catalogue/browse.html. #}
+{# Oscar's version extends layout_2_col.html and puts facets in a sidebar.    #}
+
+{% block title %}
+    "{{ query }}" | {{ block.super }}
+{% endblock %}
+
+{# Breadcrumb and sort control share one row, matching catalogue/browse.html. #}
+{% block breadcrumbs %}
+    <div class="sofi-crumbrow">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{{ homepage_url }}">{% trans "Home" %}</a>
+                </li>
+                <li class="breadcrumb-item">
+                    {% trans "Search" %}
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">"{{ query }}"</li>
+            </ol>
+        </nav>
+
+        {% if paginator.count %}
+            {# Oscar's ui.js submits the closest form when #id_sort_by changes. #}
+            <form method="get" class="sofi-sortform">
+                {% for value in selected_facets %}
+                    <input type="hidden" name="selected_facets" value="{{ value }}" />
+                {% endfor %}
+                <input type="hidden" name="q" value="{{ search_form.q.value }}" />
+                {% include "oscar/partials/form_field.html" with field=search_form.sort_by %}
+            </form>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block headertext %}
+    {% blocktrans with q=query %}
+        Products matching "{{ q }}"
+    {% endblocktrans %}
+{% endblock %}
+
+{% block content %}
+    <div class="sofi-toolbar">
+        {% if paginator.count %}
+            <div class="sofi-toolbar__count">
+                {% if paginator.num_pages > 1 %}
+                    {% blocktrans with start=page.start_index end=page.end_index num_results=paginator.count %}
+                        Found <strong>{{ num_results }}</strong> results, showing <strong>{{ start }}</strong> to <strong>{{ end }}</strong>.
+                    {% endblocktrans %}
+                {% else %}
+                    {% blocktrans count num_results=paginator.count %}
+                        Found <strong>{{ num_results }}</strong> result.
+                    {% plural %}
+                        Found <strong>{{ num_results }}</strong> results.
+                    {% endblocktrans %}
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="sofi-toolbar__count">
+                {% trans "Found <strong>0</strong> results." %}
+                {% if suggestion %}
+                    {% url 'search:search' as search_url %}
+                    {% blocktrans %}
+                        Did you mean <a href="{{ search_url }}?q={{ suggestion }}">"{{ suggestion }}"</a>?
+                    {% endblocktrans %}
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
+    {% if page.object_list %}
+        <section>
+            <div>
+                <ol class="row list-unstyled ml-0 pl-0 sofi-grid">
+                    {% for result in page.object_list %}
+                        <li class="col-6 col-md-4 col-lg-3 col-xl-2">{% render_product result.object %}</li>
+                    {% endfor %}
+                </ol>
+                {% include "oscar/partials/pagination.html" with page_obj=page %}
+            </div>
+        </section>
+    {% endif %}
+
+{% endblock %}
+
+{% block onbodyload %}
+    {{ block.super }}
+    oscar.search.init();
+{% endblock %}

@@ -84,6 +84,8 @@ INSTALLED_APPS = [
     "treebeard",
     "django_tables2",
     "easy_thumbnails",
+    # Project apps
+    "core.apps.CoreConfig",
 ]
 
 SITE_ID = 1
@@ -125,6 +127,7 @@ TEMPLATES = [
                 "oscar.apps.checkout.context_processors.checkout",
                 "oscar.apps.communication.notifications.context_processors.notifications",
                 "oscar.core.context_processors.metadata",
+                "core.context_processors.nav_products",
             ],
         },
     },
@@ -227,7 +230,18 @@ LOGIN_REDIRECT_URL = "/"
 # Internationalisation
 # ---------------------------------------------------------------------------
 
-LANGUAGE_CODE = "en-gb"
+LANGUAGE_CODE = "en"
+
+# Only these are offered in the top-bar switcher. Django's default LANGUAGES
+# list is every language it knows about (~100), which made the selector
+# unusable. Oscar ships compiled catalogues for all three, so switching
+# actually translates the storefront rather than just the Django admin.
+LANGUAGES = [
+    ("en", _("English")),
+    ("uk", _("Ukrainian")),
+    ("es", _("Spanish")),
+]
+
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
