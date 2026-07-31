@@ -39,8 +39,6 @@ htmlcov/
 .tox/
 
 # Editors / OS
-.idea/workspace.xml
-.idea/tasks.xml
-.idea/shelf/
+.idea/*
 .vscode/
 .DS_Store
