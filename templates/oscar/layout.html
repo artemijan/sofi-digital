@@ -114,20 +114,56 @@
                 <div class="sofi-tools">
 
                     {% if LANGUAGES|length > 1 %}
-                        <form class="sofi-lang" action="{% url 'set_language' %}" method="post">
+                        {% comment %}
+                           Hover/focus menu using the same mechanics as Shop above.
+                           The native select element it replaced could not be
+                           themed: browsers draw its dropdown list with the OS
+                           widget, which put a system-grey list in the middle of
+                           the glass bar.
+
+                           Each option is its own submit button carrying
+                           name="language", so the form posts the chosen code
+                           with no JavaScript involved.
+
+                           Block form is required here. The brace-hash comment
+                           syntax is single-line only, so a multi-line one is not
+                           a comment at all and renders as visible text.
+                        {% endcomment %}
+                        {% get_language_info_list for LANGUAGES as languages %}
+                        <form class="sofi-lang sofi-menu" action="{% url 'set_language' %}" method="post">
                             {% csrf_token %}
                             <input name="next" type="hidden" value="{{ language_neutral_url_path }}" />
-                            <select class="sofi-lang__select"
-                                    name="language"
+
+                            {% comment %}
+                               type="button" is load-bearing: a button inside a
+                               form defaults to submitting it. This one only needs
+                               to take hover and focus, which opens the panel.
+                            {% endcomment %}
+                            <button class="sofi-menu__toggle sofi-lang__toggle"
+                                    type="button"
+                                    aria-haspopup="true"
+                                    aria-expanded="false"
                                     aria-label="{% trans 'Language' %}">
-                                {% get_language_info_list for LANGUAGES as languages %}
-                                {% for language in languages %}
-                                    <option value="{{ language.code }}"{% if language.code == LANGUAGE_CODE %} selected="selected"{% endif %}>
-                                        {{ language.code|upper }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                            <button class="sofi-lang__go" type="submit">{% trans "Go" %}</button>
+                                {{ LANGUAGE_CODE|upper }}
+                                <svg class="sofi-menu__chevron" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
+                                    <path d="M1 3.2 5 7l4-3.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
+
+                            <div class="sofi-menu__panel sofi-lang__panel">
+                                <div class="sofi-lang__card">
+                                    {% for language in languages %}
+                                        <button class="sofi-lang__option"
+                                                type="submit"
+                                                name="language"
+                                                value="{{ language.code }}"
+                                                {% if language.code == LANGUAGE_CODE %}aria-current="true"{% endif %}>
+                                            <span class="sofi-lang__code">{{ language.code|upper }}</span>
+                                            <span class="sofi-lang__name">{{ language.name_local|capfirst }}</span>
+                                        </button>
+                                    {% endfor %}
+                                </div>
+                            </div>
                         </form>
                     {% endif %}
 

@@ -492,44 +492,94 @@ select:focus-visible,
     flex: 0 0 auto;
 }
 
+/* ---- Language menu -------------------------------------------------
+ * Carries .sofi-menu as well, so the open/close mechanics, chevron rotation
+ * and hover bridge are all inherited from the Shop menu above rather than
+ * restated here. Only the trigger's appearance and the panel contents differ.
+ */
+
 .sofi-lang {
     margin: 0;
     display: flex;
     align-items: center;
-    gap: 0.35rem;
 }
 
-.sofi-lang__select {
-    height: 32px;
-    padding: 0 0.5rem;
-    background-color: transparent;
+.sofi-lang__toggle {
+    /* .sofi-menu__toggle supplies padding, radius and the hover treatment;
+       this only has to undo the UA button styling on top of it. */
+    background: none;
+    border: 0;
+    font: inherit;
+    font-weight: 550;
     color: var(--sofi-text-muted);
-    border: 1px solid var(--sofi-border);
-    border-radius: var(--sofi-radius-pill);
-    font-size: 0.85rem;
+    letter-spacing: 0.03em;
     cursor: pointer;
-    transition: border-color 0.18s ease, color 0.18s ease;
 }
 
-.sofi-lang__select:hover {
-    border-color: var(--sofi-accent);
+/* The panel is narrower than the mega menu and sits near the right edge of
+   the bar, so it hangs from the right rather than the left default. */
+.sofi-lang__panel {
+    left: auto;
+    right: 0;
+}
+
+.sofi-lang__card {
+    display: flex;
+    flex-direction: column;
+    min-width: 176px;
+    padding: 0.4rem;
+    background-color: var(--sofi-surface);
+    border: 1px solid var(--sofi-border);
+    border-radius: var(--sofi-radius);
+    box-shadow: var(--sofi-shadow-lift);
+}
+
+.sofi-lang__option {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: 100%;
+    padding: 0.45rem 0.6rem;
+    background: none;
+    border: 0;
+    border-radius: calc(var(--sofi-radius) - 0.35rem);
+    color: var(--sofi-text);
+    font: inherit;
+    font-size: 0.9rem;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.16s ease, color 0.16s ease;
+}
+
+.sofi-lang__option:hover,
+.sofi-lang__option:focus-visible {
+    background-color: var(--sofi-accent-soft);
     color: var(--sofi-accent-strong);
+    outline: none;
 }
 
-.sofi-lang__go {
-    height: 32px;
-    padding: 0 0.7rem;
-    background-color: transparent;
+.sofi-lang__option[aria-current="true"] {
+    color: var(--sofi-accent-strong);
+    font-weight: 600;
+}
+
+.sofi-lang__code {
+    flex: 0 0 auto;
+    min-width: 1.9em;
     color: var(--sofi-text-muted);
-    border: 1px solid var(--sofi-border);
-    border-radius: var(--sofi-radius-pill);
-    font-size: 0.85rem;
-    cursor: pointer;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
 }
 
-/* Hidden once JS wires the select to auto-submit (progressive enhancement). */
-.sofi-lang--auto .sofi-lang__go {
-    display: none;
+.sofi-lang__option:hover .sofi-lang__code,
+.sofi-lang__option:focus-visible .sofi-lang__code,
+.sofi-lang__option[aria-current="true"] .sofi-lang__code {
+    color: inherit;
+}
+
+.sofi-lang__name {
+    flex: 1 1 auto;
 }
 
 .sofi-badge {
@@ -876,6 +926,45 @@ select:focus-visible,
     }
 
     .sofi-menu__chevron {
+        display: none;
+    }
+
+    /* The rule above makes every panel static and permanently visible, which
+       is right for the mega menu but would leave the language list hanging
+       open in the bar. Three codes fit on one line, so it becomes a row of
+       pills instead — and that avoids relying on tap-to-focus to open a panel,
+       which is the shakiest part of a hover menu on touch. */
+    .sofi-lang__toggle {
+        display: none;
+    }
+
+    .sofi-lang__panel {
+        padding-top: 0;
+    }
+
+    .sofi-lang__card {
+        flex-direction: row;
+        gap: 0.3rem;
+        min-width: 0;
+        padding: 0;
+        background: none;
+        border: none;
+        box-shadow: none;
+    }
+
+    .sofi-lang__option {
+        padding: 0.3rem 0.6rem;
+        border: 1px solid var(--sofi-border);
+        border-radius: var(--sofi-radius-pill);
+    }
+
+    .sofi-lang__option[aria-current="true"] {
+        border-color: var(--sofi-accent);
+        background-color: var(--sofi-accent-soft);
+    }
+
+    /* The code alone is enough once they sit side by side. */
+    .sofi-lang__name {
         display: none;
     }
 }

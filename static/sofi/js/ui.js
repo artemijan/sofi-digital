@@ -1,8 +1,9 @@
 /*
- * Top-bar behaviour: mobile burger and language auto-submit.
+ * Top-bar behaviour: the mobile burger.
  *
- * The Shop menu itself is CSS-only (:hover / :focus-within), so it needs no
- * JavaScript and keeps working if this file fails to load.
+ * The Shop and language menus are both CSS-only (:hover / :focus-within), so
+ * they need no JavaScript and keep working if this file fails to load. The
+ * language form posts through per-option submit buttons for the same reason.
  */
 (function () {
     "use strict";
@@ -17,23 +18,6 @@
             var open = burger.getAttribute("aria-expanded") === "true";
             burger.setAttribute("aria-expanded", String(!open));
             collapse.classList.toggle("is-open", !open);
-        });
-    }
-
-    function initLanguageForm() {
-        var form = document.querySelector(".sofi-lang");
-        if (!form) {
-            return;
-        }
-        var select = form.querySelector(".sofi-lang__select");
-        if (!select) {
-            return;
-        }
-        // Progressive enhancement: submit on change and drop the Go button.
-        // Without JS the button stays visible and the form still works.
-        form.classList.add("sofi-lang--auto");
-        select.addEventListener("change", function () {
-            form.submit();
         });
     }
 
@@ -228,7 +212,6 @@
 
     document.addEventListener("DOMContentLoaded", function () {
         initBurger();
-        initLanguageForm();
         initToasts();
         initAuthTabs();
     });
