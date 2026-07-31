@@ -137,10 +137,15 @@ select:focus-visible,
     min-height: 52px;
     margin: 0 auto;
     padding: 0.3rem 0.4rem 0.3rem 1.25rem;
-    /* Frosted: content scrolling underneath shows through, blurred. */
-    background-color: rgba(255, 255, 255, 0.72);
-    backdrop-filter: blur(14px) saturate(140%);
-    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    /* Frosted: content scrolling underneath shows through, blurred.
+       The tint is deliberately light so the glass reads as glass. Dropping the
+       alpha alone would just look washed out and cost legibility, so the blur
+       and saturation go up to compensate: more blur keeps text readable over
+       busy content, and the extra saturation stops the colours bleeding through
+       grey. */
+    background-color: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(18px) saturate(180%);
+    -webkit-backdrop-filter: blur(18px) saturate(180%);
     border: 1px solid var(--sofi-border);
     border-radius: var(--sofi-radius-pill);
     box-shadow: var(--sofi-shadow);

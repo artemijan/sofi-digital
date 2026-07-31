@@ -264,7 +264,11 @@ if [[ "${STATIC_URL:-/static/}" == /* ]]; then
     echo
 else
     echo "    The shop serves assets from ${STATIC_URL}"
-    echo "    Asset filenames are content-hashed, so this upload is additive — pages served"
-    echo "    by the currently deployed app keep resolving to the files they already"
-    echo "    reference. Run ./deploy-be.sh to move the app onto the new hashes."
+    echo
+    echo "    IMPORTANT: this REPLACED the Worker's whole asset set — a deploy serves"
+    echo "    exactly the files just uploaded, so the previously hashed names are gone."
+    echo "    The running app still asks for the OLD names until its manifest is updated,"
+    echo "    so if any asset changed, the site is serving 404s for them RIGHT NOW."
+    echo
+    echo "        ./deploy-be.sh      # ships the matching manifest — run this next"
 fi
