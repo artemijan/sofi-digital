@@ -75,14 +75,25 @@ CF_STATIC_DOMAIN="${CF_STATIC_DOMAIN:-}"
 # served from static assets without invoking a Worker script.
 CF_COMPATIBILITY_DATE="${CF_COMPATIBILITY_DATE:-2025-04-01}"
 
+# Pinned deliberately. `bun x wrangler` unpinned resolves the `latest` dist-tag
+# on every run, which makes each deploy depend on whatever Cloudflare published
+# most recently — and a bad release then breaks deploys that changed nothing.
+# That is not hypothetical: 4.117.0 declares `miniflare@5.x-alpha` as a
+# dependency, which bun refuses to resolve, so every deploy failed until this
+# was pinned. 4.116.0 is the last release before that.
+#
+# Bump deliberately, after checking the new version actually runs:
+#     bun x wrangler@<version> --version
+WRANGLER_VERSION="${WRANGLER_VERSION:-4.116.0}"
+
 export CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID
 
-WRANGLER=(bun x wrangler)
+WRANGLER=(bun x "wrangler@$WRANGLER_VERSION")
 # Mirrors STATIC_ROOT in config/settings.py. Not a deploy.env setting: it is a
 # code-level path, and the two must not be able to drift independently.
 DIST="staticfiles"
 
-echo "==> Cloudflare Worker: $CF_WORKER_NAME"
+echo "==> Cloudflare Worker: $CF_WORKER_NAME (wrangler $WRANGLER_VERSION)"
 if [[ -n "$CF_STATIC_DOMAIN" ]]; then
     echo "==> Custom domain:     $CF_STATIC_DOMAIN"
 fi

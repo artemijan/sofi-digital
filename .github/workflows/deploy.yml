@@ -96,6 +96,9 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CF_WORKER_NAME: ${{ vars.CF_WORKER_NAME || secrets.CF_WORKER_NAME }}
       CF_STATIC_DOMAIN: ${{ vars.CF_STATIC_DOMAIN || secrets.CF_STATIC_DOMAIN }}
+      # Optional override for the pinned wrangler in deploy-static.sh. Leave
+      # unset to use the pin; set it to roll forward without editing the script.
+      WRANGLER_VERSION: ${{ vars.WRANGLER_VERSION }}
 
     steps:
       - uses: actions/checkout@v4

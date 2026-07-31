@@ -122,7 +122,9 @@ PUBLIC_URL="${PUBLIC_URL%/}"
 if [[ -n "$DJANGO_SUPERUSER_PASSWORD" ]]; then
     if [[ -z "$DJANGO_SUPERUSER_USERNAME" || -z "$DJANGO_SUPERUSER_EMAIL" ]]; then
         echo "error: DJANGO_SUPERUSER_PASSWORD is set, so DJANGO_SUPERUSER_USERNAME and" >&2
-        echo "       DJANGO_SUPERUSER_EMAIL must be set too in $ENV_FILE." >&2
+        echo "       DJANGO_SUPERUSER_EMAIL must be set too in $CONFIG_SOURCE." >&2
+        echo "       Or clear DJANGO_SUPERUSER_PASSWORD to skip superuser creation entirely" >&2
+        echo "       (it only ever runs when the deployed database has no superuser yet)." >&2
         exit 1
     fi
 fi
