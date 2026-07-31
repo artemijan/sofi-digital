@@ -25,6 +25,13 @@ env = environ.Env(
     OSCAR_SHOP_NAME=(str, "Sofi"),
     OSCAR_SHOP_TAGLINE=(str, ""),
     OSCAR_DEFAULT_CURRENCY=(str, "EUR"),
+    STATIC_URL=(str, "/static/"),
+    SERVE_MEDIA=(bool, True),
+    SECURE_SSL_REDIRECT=(bool, False),
+    SECURE_HSTS_SECONDS=(int, 0),
+    TRUST_PROXY_SSL_HEADER=(bool, True),
+    SESSION_COOKIE_SECURE=(bool, True),
+    CSRF_COOKIE_SECURE=(bool, True),
 )
 environ.Env.read_env(BASE_DIR / ".env")
 
@@ -251,12 +258,24 @@ USE_TZ = True
 # Static & media files
 # ---------------------------------------------------------------------------
 
-STATIC_URL = "/static/"
+# Absolute (e.g. https://sofi-static.workers.dev/) when a CDN serves the
+# collected assets, "/static/" otherwise. Only applied at render time, by the
+# storage's url(): ManifestStaticFilesStorage rewrites just the filename segment
+# of a url() reference and leaves the path relative, so collectstatic output
+# does not depend on this value. The uploaded CDN copy and the server's
+# staticfiles.json are therefore interchangeable, and changing STATIC_URL needs
+# a redeploy of the app but not of the assets.
+STATIC_URL = env("STATIC_URL")
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+# Whether Django itself serves MEDIA_ROOT when DEBUG is off (see config/urls.py).
+# Needed when no nginx sits in front, because media is written at runtime by the
+# Oscar dashboard and easy-thumbnails and so cannot be shipped to a CDN.
+SERVE_MEDIA = env("SERVE_MEDIA")
 
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
@@ -298,12 +317,41 @@ OSCAR_URL_SCHEMA = "http" if DEBUG else "https"
 # ---------------------------------------------------------------------------
 
 if not DEBUG:
-    SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SECURE_HSTS_SECONDS = 60 * 60 * 24 * 7
+    # TLS is terminated entirely at the edge (Cloudflare). This app never sees a
+    # certificate and speaks only plain HTTP, so it does no scheme enforcement of
+    # its own: the edge is the single place that decides http-vs-https, and an
+    # app-level redirect on top of that is at best redundant and at worst a loop,
+    # because the request has already arrived over https as far as the browser is
+    # concerned.
+    #
+    # Both default to off for that reason. Turn them on only if this app is ever
+    # exposed without a TLS-terminating proxy in front.
+    SECURE_SSL_REDIRECT = env("SECURE_SSL_REDIRECT")
+    SECURE_HSTS_SECONDS = env("SECURE_HSTS_SECONDS")
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+    # Read only when the proxy actually sends it. Costs nothing when absent, and
+    # when present it makes request.is_secure() true — which is what keeps
+    # password-reset and order-confirmation emails from going out with http://
+    # links, since those are built from the request. Turning this off does not
+    # disable anything above; both already default to off.
+    if env("TRUST_PROXY_SSL_HEADER"):
+        SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+    # Deliberately still on, and not part of "the app does no HTTPS". Django
+    # stamps the Secure flag on the cookie regardless of the scheme it sees, and
+    # the leg that matters — browser to Cloudflare — IS https, so the browser
+    # returns them normally. Switching these off would not fix anything; it would
+    # just let the session cookie ride a plaintext request if one ever occurred.
+    SESSION_COOKIE_SECURE = env("SESSION_COOKIE_SECURE")
+    CSRF_COOKIE_SECURE = env("CSRF_COOKIE_SECURE")
+
+    # NOTE: CSRF_TRUSTED_ORIGINS (set above from the environment) is load-bearing
+    # once the app stops seeing https. Django builds the expected origin as
+    # "http://<host>" when request.is_secure() is false, while the browser sends
+    # Origin: https://<host> — they do not match, and every POST (login,
+    # checkout, dashboard) fails CSRF unless the https origin is listed there.
+    # deploy-be.sh writes PUBLIC_URL into it, and refuses to deploy without it.
 
 X_FRAME_OPTIONS = "DENY"
 

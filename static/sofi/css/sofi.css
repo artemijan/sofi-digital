@@ -759,6 +759,21 @@ select:focus-visible,
 @media (max-width: 991.98px) {
     .sofi-topbar {
         flex-wrap: wrap;
+        /*
+         * Column gap only. The collapsed nav is still a second flex line (zero
+         * height, not display:none), so a row gap would add empty space below
+         * brand · basket · burger and leave that row sitting above the bar's
+         * centre. Breathing room once the menu opens comes from .is-open's
+         * padding-block instead.
+         */
+        column-gap: 0.85rem;
+        row-gap: 0;
+        /*
+         * Any slack from `min-height` goes above and below the pair of flex
+         * lines rather than being split between them, so the brand row stays
+         * centred even on pages with no basket total to set the row's height.
+         */
+        align-content: center;
         border-radius: 22px;
         padding: 0.4rem 0.55rem 0.4rem 1rem;
     }
@@ -777,11 +792,17 @@ select:focus-visible,
      */
     .sofi-topbar__brand {
         order: 1;
+        /*
+         * The push to the right lives on the brand, not on the basket total:
+         * basket/basket.html suppresses the `mini_basket` block, and hanging
+         * it off the total would drop the burger back beside the wordmark on
+         * that page.
+         */
+        margin-right: auto;
     }
 
     .sofi-topbar .sofi-cta {
         order: 2;
-        margin-left: auto;
     }
 
     .sofi-topbar__collapse {
@@ -1464,6 +1485,89 @@ footer.container {
 .sofi-grid > li > .product_pod {
     width: 100%;
     margin: 0;
+}
+
+/* ------------------------------------------------------------------ *
+ * Auth: login / register tabs
+ *
+ * One centred card with a segmented tab strip instead of Oscar's two
+ * side-by-side forms. The strip and the panel hiding are switched on by the
+ * `sofi-auth--js` class that sofi/js/ui.js adds: with JS off the strip stays
+ * hidden and both forms stack, separated by a rule.
+ * ------------------------------------------------------------------ */
+
+.sofi-auth {
+    max-width: 460px;
+    margin: 0 auto;
+    padding: 1.5rem;
+    background-color: var(--sofi-surface);
+    border: 1px solid var(--sofi-border);
+    border-radius: var(--sofi-radius);
+    box-shadow: var(--sofi-shadow);
+}
+
+.sofi-auth__tabs {
+    display: none;
+    gap: 0.25rem;
+    margin-bottom: 1.5rem;
+    padding: 0.25rem;
+    background-color: var(--sofi-surface-alt);
+    border-radius: var(--sofi-radius-pill);
+}
+
+.sofi-auth--js .sofi-auth__tabs {
+    display: flex;
+}
+
+.sofi-auth__tab {
+    flex: 1 1 0;
+    padding: 0.55rem 1rem;
+    background-color: transparent;
+    border: 0;
+    border-radius: var(--sofi-radius-pill);
+    color: var(--sofi-text-muted);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.18s ease, color 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+.sofi-auth__tab:hover {
+    color: var(--sofi-accent-strong);
+}
+
+.sofi-auth__tab[aria-selected="true"] {
+    background-color: var(--sofi-surface);
+    color: var(--sofi-heading);
+    box-shadow: var(--sofi-shadow);
+}
+
+/* Stacked fallback: keep the two forms visually apart. */
+.sofi-auth__panel + .sofi-auth__panel {
+    margin-top: 1.75rem;
+    padding-top: 1.75rem;
+    border-top: 1px solid var(--sofi-border);
+}
+
+.sofi-auth--js .sofi-auth__panel + .sofi-auth__panel {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+}
+
+/* With tabs on, the selected tab already names the panel. */
+.sofi-auth--js .sofi-auth__title {
+    display: none;
+}
+
+.sofi-auth__title {
+    margin-bottom: 1.25rem;
+    font-size: 1.5rem;
+}
+
+.sofi-auth__aside {
+    margin-bottom: 1.25rem;
+    font-size: 0.9rem;
 }
 
 /* Very narrow screens: keep brand + basket + burger on one line. */

@@ -1,0 +1,80 @@
+{% extends "oscar/layout.html" %}
+{% load i18n %}
+
+{# Project override: one centred card with a Log In / Register tab strip.     #}
+{# Oscar ships the two forms side by side in a 6/6 grid, which reads as two   #}
+{# competing calls to action and wastes the whole right half on mobile.       #}
+{#                                                                            #}
+{# The tabs are a progressive enhancement: sofi/js/ui.js adds the ARIA roles  #}
+{# and hides the inactive panel. Without JS the strip stays hidden and both   #}
+{# forms simply stack, so the page keeps working.                             #}
+
+{% block title %}
+    {% trans 'Login or register' %} | {{ block.super }}
+{% endblock %}
+
+{% block breadcrumbs %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{{ homepage_url }}">{% trans 'Home' %}</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">{% trans 'Login or register' %}</li>
+        </ol>
+    </nav>
+{% endblock %}
+
+{% block header %}{% endblock %}
+
+{% block content %}
+
+    {# A failed registration POST comes back with the registration form bound  #}
+    {# and the login form blank, so its errors are what decides the open tab.  #}
+    <div class="sofi-auth"
+         id="sofi_auth"
+         data-initial-panel="{% if registration_form.errors %}register{% else %}login{% endif %}">
+
+        {# Labelled here rather than in JS so the name stays translatable. #}
+        <div class="sofi-auth__tabs"
+             id="sofi_auth_tabs"
+             aria-label="{% trans 'Log in or register' %}">
+            <button class="sofi-auth__tab" type="button" id="sofi_auth_tab_login" data-panel="login">
+                {% trans 'Log In' %}
+            </button>
+            <button class="sofi-auth__tab" type="button" id="sofi_auth_tab_register" data-panel="register">
+                {% trans 'Register' %}
+            </button>
+        </div>
+
+        <div class="sofi-auth__panel" id="sofi_auth_panel_login" data-panel="login">
+            <form id="login_form" action="{{ request.get_full_path }}" method="post">
+                <h2 class="sofi-auth__title">{% trans 'Log In' %}</h2>
+                {% csrf_token %}
+                {% include "oscar/partials/form_fields.html" with form=login_form %}
+                <p class="sofi-auth__aside">
+                    <a href="{% url 'password-reset' %}">{% trans "I've forgotten my password" %}</a>
+                </p>
+                <button name="login_submit"
+                        type="submit"
+                        value="Log In"
+                        class="btn btn-lg btn-primary btn-block"
+                        data-loading-text="{% trans 'Logging in...' %}">{% trans 'Log In' %}</button>
+            </form>
+        </div>
+
+        <div class="sofi-auth__panel" id="sofi_auth_panel_register" data-panel="register">
+            <form id="register_form" action="{{ request.get_full_path }}" method="post">
+                <h2 class="sofi-auth__title">{% trans 'Register' %}</h2>
+                {% csrf_token %}
+                {% include "oscar/partials/form_fields.html" with form=registration_form %}
+                <button name="registration_submit"
+                        type="submit"
+                        value="Register"
+                        class="btn btn-lg btn-primary btn-block"
+                        data-loading-text="{% trans 'Registering...' %}">{% trans 'Register' %}</button>
+            </form>
+        </div>
+
+    </div>
+
+{% endblock content %}

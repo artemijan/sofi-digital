@@ -5,23 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="111e4edd-6982-4413-b95a-5a4ceaf563f5" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.env.example" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/sofi.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/config/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/config/asgi.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/config/settings.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/config/urls.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/config/wsgi.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/manage.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/uv.lock" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/templates/oscar/customer/login_registration.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.env.example" beforeDir="false" afterPath="$PROJECT_DIR$/.env.example" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/config/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/config/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/sofi/css/sofi.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/sofi/css/sofi.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/sofi/js/ui.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/sofi/js/ui.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -29,7 +20,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="7" />
+    <option name="cachedIndexableFilesCount" value="69" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="Git.Settings">
@@ -41,23 +32,23 @@
   </component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0" />
-      <entry key="MS500" value="1.0" />
-      <entry key="S2" value="1.0" />
-      <entry key="S5" value="1.0" />
-      <entry key="S10" value="1.0" />
-      <entry key="S30" value="1.0" />
-      <entry key="S60" value="1.0" />
-      <entry key="M2" value="1.0" />
-      <entry key="M5" value="1.0" />
-      <entry key="M10" value="1.0" />
-      <entry key="M15" value="1.0" />
-      <entry key="M30" value="1.0" />
-      <entry key="H1" value="1.0" />
-      <entry key="H2" value="1.0" />
-      <entry key="H4" value="1.0" />
-      <entry key="D1" value="1.0" />
-      <entry key="W1" value="1.0" />
+      <entry key="MS100" value="1.0000000000952163" />
+      <entry key="MS500" value="1.009902441578394" />
+      <entry key="S2" value="1.3154536611795224" />
+      <entry key="S5" value="1.63039022631098" />
+      <entry key="S10" value="1.8040466389782883" />
+      <entry key="S30" value="2.2691331287512124" />
+      <entry key="S60" value="2.7908862098642433" />
+      <entry key="M2" value="3.3080299993890323" />
+      <entry key="M5" value="4.883519930335741" />
+      <entry key="M10" value="8.078371700846933" />
+      <entry key="M15" value="10.511496534642404" />
+      <entry key="M30" value="14.453969028471354" />
+      <entry key="H1" value="17.305086393193996" />
+      <entry key="H2" value="19.03161996183435" />
+      <entry key="H4" value="19.983382570384094" />
+      <entry key="D1" value="20.82585957726743" />
+      <entry key="W1" value="20.975004879552664" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
@@ -79,29 +70,29 @@
       <entry key="W1" value="0.0" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.6113201388460343" />
-      <entry key="MS500" value="0.9062619382673344" />
-      <entry key="S2" value="0.9756935525550692" />
-      <entry key="S5" value="0.9902055907749557" />
-      <entry key="S10" value="0.9950907449951264" />
-      <entry key="S30" value="0.9983608964725733" />
-      <entry key="S60" value="0.9991801121282256" />
-      <entry key="M2" value="0.9995899720026334" />
-      <entry key="M5" value="0.9998359686218853" />
-      <entry key="M10" value="0.9999179809473802" />
-      <entry key="M15" value="0.9999453198841012" />
-      <entry key="M30" value="0.999972659568301" />
-      <entry key="H1" value="0.9999863296907118" />
-      <entry key="H2" value="0.9999931648219961" />
-      <entry key="H4" value="0.9999965824051581" />
-      <entry key="D1" value="0.9999994304000486" />
-      <entry key="W1" value="0.9999999186285585" />
+      <entry key="MS100" value="2.4227587292261076E-8" />
+      <entry key="MS500" value="0.03726632397529581" />
+      <entry key="S2" value="0.7082936795027446" />
+      <entry key="S5" value="1.3155433627977586" />
+      <entry key="S10" value="1.6311227557425432" />
+      <entry key="S30" value="2.207589745236818" />
+      <entry key="S60" value="2.7595673158275535" />
+      <entry key="M2" value="3.2919193866124687" />
+      <entry key="M5" value="4.8740987877045745" />
+      <entry key="M10" value="8.070612781728778" />
+      <entry key="M15" value="10.504953833527342" />
+      <entry key="M30" value="14.449689484659329" />
+      <entry key="H1" value="17.302609346682573" />
+      <entry key="H2" value="19.030283526160197" />
+      <entry key="H4" value="19.982687946575787" />
+      <entry key="D1" value="20.825739963535714" />
+      <entry key="W1" value="20.97498769538461" />
     </decayedShown>
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 1,
-  "fromUser": false
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 1,
+  &quot;fromUser&quot;: false
+}</component>
   <component name="ProjectId" id="3HEqeCOLjzUzZNnO5J6CKPM7jK4" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -115,14 +106,17 @@
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "SHELLCHECK.PATH": "/Users/artem/Library/Application Support/JetBrains/PyCharm2026.2/plugins/Shell Script/shellcheck",
     "codeWithMe.voiceChat.enabledByDefault": "false",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
     "git-widget-placeholder": "main",
     "javascript.preferred.runtime.type.id": "node",
     "junie.onboarding.icon.badge.shown": "true",
     "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.jshint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.jshint": "",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
     "settings.editor.selected.configurable": "preferences.lookFeel",
@@ -133,7 +127,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-python-sdk-50341a9f1f9c-c2ffad84badb-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-261.26222.68" />
+        <option value="bundled-js-predefined-d6986cc7102b-4abd2a77f808-JavaScript-PY-262.8665.369" />
+        <option value="bundled-python-sdk-6fa658e1df1a-5bd6d13a2a75-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-262.8665.369" />
       </set>
     </attachedChunks>
   </component>
@@ -145,6 +140,7 @@
       <option name="presentableId" value="Default" />
       <updated>1785443668762</updated>
       <workItem from="1785443669771" duration="7667000" />
+      <workItem from="1785451477876" duration="12155000" />
     </task>
     <servers />
   </component>
