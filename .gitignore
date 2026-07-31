@@ -3,7 +3,7 @@
 .env.*
 *.env
 !.env.example
-deploy*.sh
+.wrangler
 # Python
 __pycache__/
 *.py[cod]

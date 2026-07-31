@@ -1,0 +1,143 @@
+name: Deploy to prod
+
+# Deploys on every push to main, and on demand from the Actions tab.
+#
+# This runs the SAME deploy-static.sh and deploy-be.sh you run locally. They read
+# their configuration from the environment, so the only difference here is where
+# the values come from: the "prod" GitHub Environment instead of deploy.env,
+# which is gitignored and never leaves your machine.
+#
+# Adding a setting to deploy.env therefore means adding it in two places — here,
+# and as a variable or secret on the prod Environment. The scripts fail with an
+# explicit list of what is missing rather than deploying a half-configured app.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# A deploy stops the service, migrates a SQLite database and rewrites the systemd
+# unit. Two runs doing that at once would corrupt each other, so they queue.
+#
+# cancel-in-progress is deliberately false: deploy-be.sh stops the service before
+# migrating, so killing a run midway can leave the site down with no further
+# steps to bring it back up.
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: prod
+    timeout-minutes: 25
+
+    # Values are read as `vars.X || secrets.X` so they resolve whichever way you
+    # created them on the prod Environment. The recommendation is in the comments
+    # below; note that anything stored as a *variable* is NOT masked in logs.
+    env:
+      # --- Target host ---
+      REMOTE_HOST: ${{ vars.REMOTE_HOST || secrets.REMOTE_HOST }}
+      REMOTE_USER: ${{ vars.REMOTE_USER || secrets.REMOTE_USER }}
+      REMOTE_PATH: ${{ vars.REMOTE_PATH || secrets.REMOTE_PATH }}
+      SSH_PORT: ${{ vars.SSH_PORT }}
+      # SECRET. Used for ssh auth (via SSH_ASKPASS) and remote `sudo -S`.
+      REMOTE_PASSWORD: ${{ secrets.REMOTE_PASSWORD }}
+      # Strongly recommended. A runner is destroyed after every job, so without
+      # a pinned host key EVERY deploy is a first contact and accepts whatever
+      # key is offered — which, with password auth, means handing the password
+      # to an impersonating host. Populate with the output of:
+      #     ssh-keyscan -p 22 <REMOTE_HOST>
+      # Left empty it falls back to accept-new and the deploy still works.
+      SSH_KNOWN_HOSTS: ${{ vars.SSH_KNOWN_HOSTS || secrets.SSH_KNOWN_HOSTS }}
+
+      # --- Service ---
+      SERVICE_NAME: ${{ vars.SERVICE_NAME || secrets.SERVICE_NAME }}
+      APP_PORT: ${{ vars.APP_PORT }}
+      BIND_ADDRESS: ${{ vars.BIND_ADDRESS }}
+      GUNICORN_WORKERS: ${{ vars.GUNICORN_WORKERS }}
+      GUNICORN_THREADS: ${{ vars.GUNICORN_THREADS }}
+      GUNICORN_TIMEOUT: ${{ vars.GUNICORN_TIMEOUT }}
+
+      # --- Public origin ---
+      PUBLIC_URL: ${{ vars.PUBLIC_URL || secrets.PUBLIC_URL }}
+      EXTRA_ALLOWED_HOSTS: ${{ vars.EXTRA_ALLOWED_HOSTS }}
+      STATIC_URL: ${{ vars.STATIC_URL || secrets.STATIC_URL }}
+
+      # --- TLS: terminated at Cloudflare, not in the app ---
+      SECURE_SSL_REDIRECT: ${{ vars.SECURE_SSL_REDIRECT }}
+      SECURE_HSTS_SECONDS: ${{ vars.SECURE_HSTS_SECONDS }}
+      TRUST_PROXY_SSL_HEADER: ${{ vars.TRUST_PROXY_SSL_HEADER }}
+      SESSION_COOKIE_SECURE: ${{ vars.SESSION_COOKIE_SECURE }}
+      CSRF_COOKIE_SECURE: ${{ vars.CSRF_COOKIE_SECURE }}
+
+      # --- Django / Oscar ---
+      # SECRET. Empty is fine and is the norm: deploy-be.sh then reuses the key
+      # already on the server. Setting it pins the value; CHANGING it logs every
+      # customer out and invalidates outstanding password-reset links.
+      DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+      EMAIL_URL: ${{ vars.EMAIL_URL || secrets.EMAIL_URL }}
+      DEFAULT_FROM_EMAIL: ${{ vars.DEFAULT_FROM_EMAIL || secrets.DEFAULT_FROM_EMAIL }}
+      OSCAR_SHOP_NAME: ${{ vars.OSCAR_SHOP_NAME || secrets.OSCAR_SHOP_NAME }}
+      OSCAR_SHOP_TAGLINE: ${{ vars.OSCAR_SHOP_TAGLINE }}
+      OSCAR_DEFAULT_CURRENCY: ${{ vars.OSCAR_DEFAULT_CURRENCY || secrets.OSCAR_DEFAULT_CURRENCY }}
+      DJANGO_SUPERUSER_USERNAME: ${{ vars.DJANGO_SUPERUSER_USERNAME }}
+      DJANGO_SUPERUSER_EMAIL: ${{ vars.DJANGO_SUPERUSER_EMAIL }}
+      # SECRET. Only used when the deployed database has no superuser yet.
+      DJANGO_SUPERUSER_PASSWORD: ${{ secrets.DJANGO_SUPERUSER_PASSWORD }}
+
+      # --- Cloudflare ---
+      # SECRETS, all four.
+      CLOUDFLARE_TUNNEL_TOKEN: ${{ secrets.CLOUDFLARE_TUNNEL_TOKEN }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CF_WORKER_NAME: ${{ vars.CF_WORKER_NAME || secrets.CF_WORKER_NAME }}
+      CF_STATIC_DOMAIN: ${{ vars.CF_STATIC_DOMAIN || secrets.CF_STATIC_DOMAIN }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # If either major has moved on, bump the tag — these are the only two
+      # third-party actions used.
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install bun
+        uses: oven-sh/setup-bun@v2
+
+      # Catches a settings-level mistake here rather than halfway through a
+      # deploy, with the service already stopped. SECRET_KEY is a throwaway: this
+      # only loads settings and never signs anything, and the real key lives on
+      # the server. DEBUG=False so the production branch of settings.py is what
+      # actually gets checked.
+      - name: Check Django configuration
+        env:
+          SECRET_KEY: ci-check-only-never-used-to-sign-anything
+          DEBUG: "False"
+        run: uv run python manage.py check --fail-level WARNING
+
+      # Uploads the collected assets to the Cloudflare Worker. Runs first so the
+      # hashed files exist before the app starts referencing them; asset names
+      # are content-hashed, so this is additive and cannot break the running site.
+      #
+      # SECRET_KEY placeholder for the same reason as above — collectstatic loads
+      # settings but signs nothing.
+      - name: Deploy static assets to Cloudflare
+        env:
+          SECRET_KEY: ci-collectstatic-only-never-used-to-sign-anything
+        run: ./deploy-static.sh
+
+      # Syncs the code, installs from uv.lock, migrates, rebuilds the search
+      # index, reinstalls the systemd unit and health-checks the result.
+      #
+      # NOTE: db.sqlite3 and media/ are gitignored, so they do not exist on the
+      # runner and the seeding branch is skipped — a CI deploy can never
+      # overwrite production data with a stale copy. Never set FORCE_SEED_DATA
+      # here; that flag is for a deliberate local reseed only.
+      - name: Deploy application
+        run: ./deploy-be.sh
